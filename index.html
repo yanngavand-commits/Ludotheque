@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ludothèque de Moissbatt</title>
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout : une barre de filtres « table de jeu » en haut, puis une grille de boîtes de jeu. */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --ink:#18202B; --muted:#5B6574; --line:#D5DAE1;
+  --accent:#E8A400; --accent-ink:#1A1300; --chip:#E3E7EC; --chip-on:#18202B; --chip-on-ink:#FFFFFF;
+  --good:#2E7D5B; --shadow:0 1px 2px rgba(24,32,43,.08),0 6px 18px rgba(24,32,43,.06);
+  --f-display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161C; --surface:#1B212A; --ink:#E9EDF2; --muted:#9AA4B2; --line:#2C3542;
+  --accent:#F2B92B; --accent-ink:#1A1300; --chip:#262E3A; --chip-on:#E9EDF2; --chip-on-ink:#12161C;
+  --good:#5CC497; --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161C; --surface:#1B212A; --ink:#E9EDF2; --muted:#9AA4B2; --line:#2C3542;
+  --accent:#F2B92B; --accent-ink:#1A1300; --chip:#262E3A; --chip-on:#E9EDF2; --chip-on-ink:#12161C;
+  --good:#5CC497; --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,5vw,44px);line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+.stamp{color:var(--muted);font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:16px;box-shadow:var(--shadow)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.field{display:grid;gap:8px;min-width:0}
+.label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.players{display:flex;gap:6px;flex-wrap:wrap}
+.pbtn,.chip,.seg button{font:inherit;border:0;cursor:pointer;background:var(--chip);color:var(--ink);border-radius:999px}
+.pbtn{width:40px;height:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.pbtn[aria-pressed="true"],.chip[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:8px 12px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:112px;overflow:auto;padding:2px}
+.chips.open{max-height:none}
+.chip{padding:6px 11px;font-size:13.5px}
+.chip .n{opacity:.6;margin-left:4px;font-variant-numeric:tabular-nums}
+input[type=search],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.linkbtn{font:inherit;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;justify-self:start;font-size:13px}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 14px}
+.count{font-family:var(--f-display);font-weight:800;font-size:22px}
+.count small{font-family:var(--f-body);font-weight:400;font-size:14px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.actions select{width:auto}
+.dice{font:inherit;font-weight:700;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.reset{font:inherit;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--hue,var(--line));border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0}
+.card.pick{outline:3px solid var(--accent);outline-offset:2px}
+.cover{aspect-ratio:4/3;max-width:100%;background:var(--chip);display:grid;place-items:center;overflow:hidden}
+.cover img{width:100%;height:100%;object-fit:contain;padding:10px}
+.body{padding:12px 14px 14px;display:grid;gap:8px;align-content:start;min-width:0}
+.title{font-family:var(--f-display);font-weight:600;font-size:18px;line-height:1.15;margin:0;text-wrap:balance}
+.title a{color:inherit;text-decoration:none}
+.title a:hover{text-decoration:underline}
+.yr{color:var(--muted);font-weight:400;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-variant-numeric:tabular-nums}
+.stat{display:grid;gap:1px}
+.stat b{font-size:15px}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.weight{display:flex;gap:3px;align-items:center}
+.weight i{width:9px;height:9px;border-radius:2px;background:var(--line)}
+.weight i.on{background:var(--ink)}
+.desc{color:var(--muted);font-size:13.5px;margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:12px;background:var(--chip);border-radius:6px;padding:2px 7px}
+.tag.ext{background:var(--accent);color:var(--accent-ink)}
+.rating{font-size:13px;color:var(--muted)}
+.rating b{color:var(--ink)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+footer{margin-top:32px;color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+footer a{color:inherit}
+.pbgg{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card.pick{animation:pop .4s ease}}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Ludothèque de Moissbatt</h1>
+      <p class="sub">Choisissez le jeu de la soirée parmi la collection.</p>
+    </div>
+    <div class="stamp" id="stamp">Chargement de la collection…</div>
+  </header>
+
+  <section class="panel" aria-label="Filtres">
+    <div class="row">
+      <div class="field">
+        <span class="label" id="lbl-p">On est combien ?</span>
+        <div class="players" id="players" role="group" aria-labelledby="lbl-p"></div>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-t">Temps disponible</span>
+        <div class="seg" id="time" role="group" aria-labelledby="lbl-t"></div>
+      </div>
+      <div class="field">
+        <span class="label" id="lbl-w">Complexité</span>
+        <div class="seg" id="weight" role="group" aria-labelledby="lbl-w"></div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="lbl-c">Thème</span>
+      <div class="chips" id="cats" role="group" aria-labelledby="lbl-c"></div>
+      <button class="linkbtn" id="more-cats" type="button">Voir tous les thèmes</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="label" for="mech">Mécanique</label>
+        <select id="mech"><option value="">Toutes les mécaniques</option></select>
+      </div>
+      <div class="field">
+        <label class="label" for="age">Âge minimum des joueurs</label>
+        <select id="age">
+          <option value="">Peu importe</option>
+          <option value="6">Enfants de 6 ans</option>
+          <option value="8">Enfants de 8 ans</option>
+          <option value="10">Enfants de 10 ans</option>
+          <option value="12">Ados de 12 ans</option>
+          <option value="14">Ados de 14 ans</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="q">Rechercher un jeu</label>
+        <input type="search" id="q" placeholder="Nom du jeu…" autocomplete="off">
+      </div>
+    </div>
+  </section>
+
+  <div class="bar">
+    <div class="count" id="count" aria-live="polite"></div>
+    <div class="actions">
+      <label class="check"><input type="checkbox" id="coop"> Coopératif</label>
+      <label class="check"><input type="checkbox" id="ext"> Inclure les extensions</label>
+      <label class="label" for="sort" style="position:absolute;left:-9999px">Trier par</label>
+      <select id="sort">
+        <option value="avg">Mieux notés</option>
+        <option value="name">Nom (A→Z)</option>
+        <option value="time">Plus courts</option>
+        <option value="weight">Plus simples</option>
+        <option value="year">Plus récents</option>
+      </select>
+      <button class="reset" id="reset" type="button">Tout effacer</button>
+      <button class="dice" id="dice" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+        Tirer au sort
+      </button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <a class="pbgg" href="https://boardgamegeek.com" target="_blank" rel="noopener">Powered by BGG</a>
+    <span>Données issues de la <a href="https://boardgamegeek.com/collection/user/Moissbatt?own=1" target="_blank" rel="noopener">collection BoardGameGeek de Moissbatt</a>.</span>
+  </footer>
+</div>
+
+<script>
+const FR = {"Abstract Strategy":"Stratégie abstraite","Action / Dexterity":"Adresse","Adventure":"Aventure","Age of Reason":"Siècle des Lumières","American Civil War":"Guerre de Sécession","American West":"Far West","Ancient":"Antiquité","Animals":"Animaux","Arabian":"Orient","Aviation / Flight":"Aviation","Bluffing":"Bluff","Book":"Livre","Card Game":"Jeu de cartes","Children's Game":"Jeu pour enfants","City Building":"Construction de ville","Civilization":"Civilisation","Collectible Components":"Éléments à collectionner","Comic Book / Strip":"Bande dessinée","Deduction":"Déduction","Dice":"Dés","Economic":"Économie","Educational":"Éducatif","Electronic":"Électronique","Environmental":"Environnement","Expansion for Base-game":"Extension","Exploration":"Exploration","Fantasy":"Fantasy","Farming":"Agriculture","Fighting":"Combat","Game System":"Système de jeu","Horror":"Horreur","Humor":"Humour","Industry / Manufacturing":"Industrie","Mafia":"Mafia","Math":"Maths","Mature / Adult":"Adulte","Maze":"Labyrinthe","Medical":"Médecine","Medieval":"Médiéval","Memory":"Mémoire","Miniatures":"Figurines","Modern Warfare":"Guerre moderne","Movies / TV / Radio theme":"Cinéma et télé","Murder / Mystery":"Enquête","Music":"Musique","Mythology":"Mythologie","Napoleonic":"Époque napoléonienne","Nautical":"Marine","Negotiation":"Négociation","Novel-based":"Tiré d'un roman","Number":"Nombres","Party Game":"Jeu d'ambiance","Pike and Shot":"Renaissance militaire","Pirates":"Pirates","Political":"Politique","Post-Napoleonic":"XIXe siècle","Prehistoric":"Préhistoire","Print & Play":"Print & Play","Puzzle":"Casse-tête","Racing":"Course","Real-time":"Temps réel","Religious":"Religion","Renaissance":"Renaissance","Science Fiction":"Science-fiction","Space Exploration":"Exploration spatiale","Spies/Secret Agents":"Espionnage","Sports":"Sport","Territory Building":"Contrôle de territoire","Trains":"Trains","Transportation":"Transport","Travel":"Voyage","Trivia":"Quiz","Video Game Theme":"Jeu vidéo","Wargame":"Wargame","Word Game":"Jeu de lettres","World War I":"Première Guerre mondiale","World War II":"Seconde Guerre mondiale","Zombies":"Zombies","Mythology":"Mythologie","Vietnam War":"Guerre du Vietnam","Korean War":"Guerre de Corée"};
+const MECH = {"Cooperative Game":"Coopératif","Hand Management":"Gestion de main","Dice Rolling":"Lancer de dés","Set Collection":"Collection","Tile Placement":"Pose de tuiles","Worker Placement":"Placement d'ouvriers","Deck, Bag, and Pool Building":"Construction de deck","Drafting":"Draft","Open Drafting":"Draft ouvert","Closed Drafting":"Draft fermé","Area Majority / Influence":"Majorité","Hidden Roles":"Rôles cachés","Push Your Luck":"Stop ou encore","Simultaneous Action Selection":"Actions simultanées","Solo / Solitaire Game":"Jouable en solo","Team-Based Game":"En équipes","Variable Player Powers":"Pouvoirs asymétriques","Modular Board":"Plateau modulaire","Storytelling":"Narration","Narrative Choice / Paragraph":"Choix narratifs","Scenario / Mission / Campaign Game":"Campagne / scénarios","Pattern Building":"Construction de motifs","Network and Route Building":"Construction de réseau","Auction / Bidding":"Enchères","Trading":"Échanges","Negotiation":"Négociation","Voting":"Vote","Memory":"Mémoire","Real-Time":"Temps réel","Communication Limits":"Communication limitée","Deduction":"Déduction","Bluffing":"Bluff","Take That":"Coups bas","Trick-taking":"Plis","Roll / Spin and Move":"Lancer et déplacer","Grid Movement":"Déplacement sur grille","Area Movement":"Déplacement par zones","Action Points":"Points d'action","Engine Building":"Moteur de jeu","Legacy Game":"Legacy","Player Elimination":"Élimination","Paper-and-Pencil":"Papier-crayon","Roll and Write":"Roll & Write","Flip and Write":"Flip & Write","Line Drawing":"Tracé de lignes","Pick-up and Deliver":"Ramassage et livraison","Point to Point Movement":"Déplacement point à point","Hexagon Grid":"Grille hexagonale","Grid Coverage":"Couverture de grille","Card Play Conflict Resolution":"Combat par cartes","Dexterity":"Adresse","Stacking and Balancing":"Empilement","Flicking":"Pichenette","Income":"Revenus","Market":"Marché","Contracts":"Contrats","Tech Trees / Tech Tracks":"Arbre technologique","Turn Order: Progressive":"Ordre de tour progressif","Race":"Course","Map Addition":"Ajout de carte","Tableau Building":"Construction de tableau","Bingo":"Bingo","Matching":"Association","Rock-Paper-Scissors":"Pierre-feuille-ciseaux","Traitor Game":"Traître","Semi-Cooperative Game":"Semi-coopératif","Movement Points":"Points de mouvement","Square Grid":"Grille carrée","Variable Set-up":"Mise en place variable","End Game Bonuses":"Bonus de fin de partie","End Game Bonus":"Bonus de fin de partie","Melding and Splaying":"Combinaisons","Mancala":"Semailles (mancala)","Rondel":"Rondel","Action Queue":"File d'actions","Action Drafting":"Draft d'actions","Ownership":"Propriété","Investment":"Investissement","Programmed Movement":"Mouvement programmé","Secret Unit Deployment":"Déploiement secret","Hidden Movement":"Mouvement caché","Track Movement":"Déplacement sur piste","Lose a Turn":"Passer son tour","Score-and-Reset Game":"Manches successives","Once-Per-Game Abilities":"Capacité unique","Interrupts":"Interruptions","Bias":"Biais","Enclosure":"Enclosure","Kill Steal":"Vol de victoire","Measurement Movement":"Déplacement mesuré","Critical Hits and Failures":"Coups critiques","Ratio / Combat Results Table":"Table de combat","Sudden Death Ending":"Fin brutale","Highest-Lowest Scoring":"Score du plus faible","Moving Multiple Units":"Plusieurs unités","Single Loser Game":"Un seul perdant","Speed Matching":"Rapidité","Re-rolling and Locking":"Relances","Chit-Pull System":"Tirage de pions","Events":"Événements","Advantage Token":"Jeton d'avantage","Hand Management ":"Gestion de main","Increase Value of Unchosen Resources":"Ressources qui s'accumulent","Turn Order: Stat-Based":"Ordre de tour selon les stats","Command Cards":"Cartes de commandement","Simulation":"Simulation","Stat Check Resolution":"Tests de caractéristiques","Role Playing":"Jeu de rôle","Physical Removal":"Retrait physique","Layering":"Superposition","Mission":"Missions","Predictive Bid":"Annonce de plis","Prisoner's Dilemma":"Dilemme du prisonnier","Delayed Purchase":"Achat différé","Square Grid ":"Grille carrée","Dice Placement":"Placement de dés","Automatic Resource Growth":"Ressources automatiques","Deck Construction":"Construction de deck","Constrained Bidding":"Enchères limitées","Selection Order Bid":"Enchère d'ordre","Slide/Push":"Glisser-pousser","Narrative Choice":"Choix narratifs","Cube Tower":"Tour à cubes","Follow":"Suivre","I Cut, You Choose":"Je coupe, tu choisis","Different Dice Movement":"Dés de mouvement","Victory Points as a Resource":"Points de victoire comme ressource","Line of Sight":"Ligne de vue","Zone of Control":"Zone de contrôle","Card Play Conflict Resolution ":"Combat par cartes","Worker Placement, Different Worker Types":"Ouvriers variés","Worker Placement with Dice Workers":"Ouvriers-dés","Resource to Move":"Ressource pour se déplacer","Three Dimensional Movement":"Mouvement en 3D","Static Capture":"Capture","Elapsed Real Time Ending":"Fin au chrono","Neighbor Scope":"Interaction avec les voisins","Pieces as Map":"Pièces formant le plateau","Relative Movement":"Mouvement relatif","Stock Holding":"Actions boursières","Loans":"Emprunts","Hot Potato":"Patate chaude","Alliances":"Alliances","Minimap Resolution":"Mini-carte","Impulse Movement":"Mouvement par impulsions","King of the Hill":"Roi de la colline","Multiple Maps":"Cartes multiples","Multiple-Lot Auction":"Enchères multiples","Order Counters":"Pions d'ordre","Real-Time ":"Temps réel","Targeted Clues":"Indices ciblés","Turn Order: Claim Action":"Ordre de tour par action","Turn Order: Pass Order":"Ordre de tour par passe","Turn Order: Random":"Ordre de tour aléatoire","Turn Order: Role Order":"Ordre de tour par rôle","Turn Order: Auction":"Ordre de tour aux enchères","Tug of War":"Tir à la corde","Action Retrieval":"Récupération d'actions","Action Timer":"Minuteur d'actions","Auction: Dutch":"Enchère hollandaise","Auction: English":"Enchère anglaise","Auction: Fixed Placement":"Enchère à places fixes","Auction: Once Around":"Enchère à un tour","Auction: Sealed Bid":"Enchère cachée","Auction: Turn Order Until Pass":"Enchère jusqu'à la passe","Bribery":"Corruption","Catch the Leader":"Rattraper le meneur","Chaining":"Enchaînements","Commodity Speculation":"Spéculation","Crayon Rail System":"Tracé de voies ferrées","Die Icon Resolution":"Résolution par symboles","Finale Ending":"Final","Grid Coverage ":"Couverture de grille","Induction":"Induction","Ladder Climbing":"Surenchère de combinaisons","Mancala ":"Mancala","Map Deformation":"Déformation du plateau","Map Reduction":"Réduction du plateau","Matching ":"Association","Movement Template":"Gabarit de mouvement","Multi-Use Cards":"Cartes à usages multiples","Negotiation ":"Négociation","Passed Action Token":"Jeton d'action passé","Player Judge":"Joueur-juge","Rondel ":"Rondel","Scenario / Mission / Campaign Game ":"Campagne / scénarios","Simultaneous Action Selection ":"Actions simultanées","Square Grid  ":"Grille carrée","Victory Points as a Resource ":"Points de victoire comme ressource"};
+const t = (map, s) => map[s] || s;
+const TIMES = [[0,"Peu importe"],[20,"20 min"],[30,"30 min"],[45,"45 min"],[60,"1 h"],[90,"1 h 30"],[120,"2 h"]];
+const WEIGHTS = [["","Tous"],["1","Léger"],["2","Moyen"],["3","Costaud"],["4","Expert"]];
+const wBin = w => !w ? 0 : w < 2 ? 1 : w < 2.8 ? 2 : w < 3.6 ? 3 : 4;
+const S = {players:0, time:0, weight:"", cats:new Set(), mech:"", age:"", q:"", ext:false, coop:false, sort:"avg", pick:null};
+let G = [];
+try { const s = JSON.parse(sessionStorage.getItem("ludo") || "null"); if (s) Object.assign(S, s, {cats:new Set(s.cats||[]), pick:null}); } catch(e){}
+const save = () => { try { sessionStorage.setItem("ludo", JSON.stringify({...S, cats:[...S.cats], pick:null})); } catch(e){} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function fmtTime(g){
+  const a = g.minpt, b = g.maxpt;
+  if (!a && !b) return "?";
+  const f = m => m >= 60 ? (m % 60 ? `${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}` : `${m/60}h`) : `${m}′`;
+  return a && b && a !== b ? `${f(a)}–${f(b)}` : f(a || b);
+}
+const fmtPlayers = g => !g.minp ? "?" : g.minp === g.maxp ? `${g.minp}` : `${g.minp}–${g.maxp}`;
+const isExt = g => g.sub === "boardgameexpansion";
+const isCoop = g => (g.mechs||[]).includes("Cooperative Game");
+const playTime = g => g.maxpt && g.minpt ? Math.round((g.minpt + g.maxpt) / 2) : (g.maxpt || g.minpt || 0);
+
+function matches(g, skip){
+  if (!S.ext && isExt(g)) return false;
+  if (S.coop && !isCoop(g)) return false;
+  if (S.players && !(g.minp && g.minp <= S.players && (g.maxp || g.minp) >= S.players)) return false;
+  if (S.time && !(g.minpt || g.maxpt) ) return false;
+  if (S.time && (g.minpt || g.maxpt) > S.time) return false;
+  if (S.weight && String(wBin(g.weight)) !== S.weight) return false;
+  if (skip !== "cats" && S.cats.size && ![...S.cats].some(c => (g.cats||[]).includes(c))) return false;
+  if (S.mech && !(g.mechs||[]).includes(S.mech)) return false;
+  if (S.age && g.age && g.age > +S.age) return false;
+  if (S.q && !g.name.toLowerCase().includes(S.q.toLowerCase())) return false;
+  return true;
+}
+
+function sorted(list){
+  const by = {
+    avg:(a,b)=>(b.avg||0)-(a.avg||0),
+    name:(a,b)=>a.name.localeCompare(b.name,"fr"),
+    time:(a,b)=>(playTime(a)||999)-(playTime(b)||999),
+    weight:(a,b)=>(a.weight||9)-(b.weight||9),
+    year:(a,b)=>(+b.year||0)-(+a.year||0)
+  }[S.sort];
+  return list.slice().sort(by);
+}
+
+const HUES = {1:"#3E8E6A",2:"#D9A21B",3:"#D2642C",4:"#9C3D54"};
+const hue = g => HUES[wBin(g.weight)] || "var(--line)";
+function card(g){
+  const w = Math.round(g.weight || 0);
+  const dots = [1,2,3,4,5].map(i => `<i class="${i <= w ? "on" : ""}"></i>`).join("");
+  const tags = (g.cats||[]).slice(0,4).map(c => `<span class="tag">${esc(t(FR,c))}</span>`).join("");
+  return `<article class="card${S.pick === g.id ? " pick" : ""}" id="g${g.id}" style="--hue:${hue(g)}">
+    <div class="cover">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</div>
+    <div class="body">
+      <h2 class="title"><a href="https://boardgamegeek.com/boardgame/${g.id}" target="_blank" rel="noopener">${esc(g.name)}</a> <span class="yr">${esc(g.year)}</span></h2>
+      <div class="stats">
+        <div class="stat"><b>${fmtPlayers(g)}</b><span>joueurs</span></div>
+        <div class="stat"><b>${fmtTime(g)}</b><span>durée</span></div>
+        <div class="stat"><b class="weight" title="Complexité ${g.weight ? g.weight.toFixed(1) : "?"} / 5">${dots}</b><span>complexité</span></div>
+      </div>
+      ${g.desc ? `<p class="desc">${esc(g.desc)}</p>` : ""}
+      <div class="tags">${isExt(g) ? `<span class="tag ext">Extension</span>` : ""}${isCoop(g) ? `<span class="tag">Coopératif</span>` : ""}${tags}</div>
+      <div class="rating">Note BGG <b>${g.avg ? g.avg.toFixed(1) : "–"}</b>${g.age ? ` · dès ${g.age} ans` : ""}</div>
+    </div>
+  </article>`;
+}
+
+function renderControls(){
+  $("players").innerHTML = [0,1,2,3,4,5,6,7,8].map(n => `<button class="pbtn" type="button" data-p="${n}" aria-pressed="${S.players===n}" ${n===0?'style="width:auto;padding:0 12px"':''}>${n===0?"Tous":n===8?"8+":n}</button>`).join("");
+  $("time").innerHTML = TIMES.map(([v,l]) => `<button type="button" data-t="${v}" aria-pressed="${S.time===v}">${l}</button>`).join("");
+  $("weight").innerHTML = WEIGHTS.map(([v,l]) => `<button type="button" data-w="${v}" aria-pressed="${S.weight===v}">${l}</button>`).join("");
+  const counts = {};
+  G.filter(g => matches(g, "cats")).forEach(g => (g.cats||[]).forEach(c => counts[c] = (counts[c]||0) + 1));
+  const all = [...new Set(G.flatMap(g => g.cats||[]))].sort((a,b) => (counts[b]||0)-(counts[a]||0) || t(FR,a).localeCompare(t(FR,b),"fr"));
+  $("cats").innerHTML = all.map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${S.cats.has(c)}">${esc(t(FR,c))}<span class="n">${counts[c]||0}</span></button>`).join("");
+}
+
+function render(){
+  renderControls();
+  const list = sorted(G.filter(g => matches(g)));
+  const n = list.length;
+  $("count").innerHTML = `${n} <small>${n > 1 ? "jeux correspondent" : "jeu correspond"}</small>`;
+  $("grid").innerHTML = n ? list.map(card).join("") : `<div class="empty">Aucun jeu ne coche toutes ces cases. Retirez un filtre pour élargir le choix.</div>`;
+  $("dice").disabled = !n;
+  save();
+}
+
+function initMech(){
+  const counts = {};
+  G.forEach(g => (g.mechs||[]).forEach(m => counts[m] = (counts[m]||0) + 1));
+  const ms = Object.keys(counts).filter(m => counts[m] >= 2).sort((a,b) => t(MECH,a).localeCompare(t(MECH,b),"fr"));
+  $("mech").insertAdjacentHTML("beforeend", ms.map(m => `<option value="${esc(m)}">${esc(t(MECH,m))} (${counts[m]})</option>`).join(""));
+  $("mech").value = S.mech; $("age").value = S.age; $("q").value = S.q; $("ext").checked = S.ext; $("coop").checked = S.coop; $("sort").value = S.sort;
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.p !== undefined) { S.players = +b.dataset.p; }
+  else if (b.dataset.t !== undefined) { S.time = +b.dataset.t; }
+  else if (b.dataset.w !== undefined) { S.weight = b.dataset.w; }
+  else if (b.dataset.c !== undefined) { S.cats.has(b.dataset.c) ? S.cats.delete(b.dataset.c) : S.cats.add(b.dataset.c); }
+  else if (b.id === "more-cats") { const o = $("cats").classList.toggle("open"); b.textContent = o ? "Réduire la liste" : "Voir tous les thèmes"; return; }
+  else if (b.id === "reset") { Object.assign(S, {players:0,time:0,weight:"",cats:new Set(),mech:"",age:"",q:"",coop:false,pick:null}); $("mech").value=""; $("age").value=""; $("q").value=""; $("coop").checked=false; }
+  else if (b.id === "dice") {
+    const list = G.filter(g => matches(g)); if (!list.length) return;
+    S.pick = list[Math.floor(Math.random() * list.length)].id;
+    render(); const el = $("g" + S.pick); el && el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"}); return;
+  }
+  else return;
+  S.pick = null; render();
+});
+$("mech").addEventListener("change", e => { S.mech = e.target.value; render(); });
+$("age").addEventListener("change", e => { S.age = e.target.value; render(); });
+$("sort").addEventListener("change", e => { S.sort = e.target.value; render(); });
+$("ext").addEventListener("change", e => { S.ext = e.target.checked; render(); });
+$("coop").addEventListener("change", e => { S.coop = e.target.checked; render(); });
+$("q").addEventListener("input", e => { S.q = e.target.value; render(); });
+
+// 8+ = 8 joueurs ou plus
+const _m = matches;
+matches = function(g, skip){
+  if (S.players === 8) { const p = S.players; S.players = 0; const r = _m(g, skip); S.players = p; return r && (g.maxp || 0) >= 8; }
+  return _m(g, skip);
+};
+
+fetch("data.json", {cache:"no-cache"}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  const IMG = "https://cf.geekdo-images.com/";
+  G = (d.R || []).map(r => ({id:r[0], name:r[1], year:r[2] || "", avg:r[3], weight:r[4], sub:r[5] ? "boardgameexpansion" : "boardgame",
+    minp:r[6], maxp:r[7], minpt:r[8], maxpt:r[9], age:r[10], cats:(r[11]||[]).map(i => d.C[i]), mechs:(r[12]||[]).map(i => d.M[i]),
+    desc:r[13] || "", img:r[14] ? IMG + r[14] : ""}));
+  const dt = d.u ? new Date(d.u) : null;
+  $("stamp").textContent = `${G.filter(g => !isExt(g)).length} jeux` + (dt ? ` · mis à jour le ${dt.toLocaleDateString("fr-FR", {day:"numeric", month:"long", year:"numeric"})}` : "");
+  initMech(); render();
+}).catch(() => {
+  $("stamp").textContent = "";
+  $("grid").innerHTML = `<div class="empty">La collection n'a pas pu être chargée. Rechargez la page dans un instant.</div>`;
+});
+</script>
+</body>
+</html>
