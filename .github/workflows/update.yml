@@ -1,0 +1,31 @@
+name: Mise à jour de la collection BGG
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # chaque jour vers 6 h 17 (heure de Paris en hiver)
+  workflow_dispatch:        # bouton « Run workflow » pour lancer à la main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bgg-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lire la collection sur BoardGameGeek
+        run: python3 scripts/update_bgg.py
+        env:
+          BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
+      - name: Publier les changements
+        run: |
+          if git diff --quiet -- data.json; then echo "Aucun changement"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "Mise à jour de la collection BGG"
+          git push
